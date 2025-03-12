@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 namespace DungeonExplorer
 {
@@ -76,6 +77,7 @@ namespace DungeonExplorer
             Console.WriteLine("Running TestCombat...");
             Player player = new Player("TestPlayer", 10, 10, new Room("Room 0", "Starting room", 0));
             List<object> enemy = new List<object> { "Goblin", 10, 50, 1 }; // Goblin with 10 damage, 50 health, and speed 1
+            player.CurrentRoom.Enemies.Add(enemy);
 
             // Simulate player attacking the enemy
             player.EquippedWeaponDamage = 15; // Equip a weapon with 15 damage
@@ -123,6 +125,8 @@ namespace DungeonExplorer
             TestInventory();
 
             Console.WriteLine("All tests passed!");
+            Thread.Sleep(2000);
+            Console.Clear();
         }
     }
 }

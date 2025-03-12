@@ -58,7 +58,11 @@ namespace DungeonExplorer
         /// <param name="item"> The item being added to the inventory.</param>
         public void AddItem(string item)
         {
-            inventoryManager.AddItem(item);
+            if (GameData.GetWeapons().ContainsKey(item))
+            {
+                inventoryManager.EquipWeapon(item);
+            }
+            Inventory.Add(item);
         }
 
         /// <summary>

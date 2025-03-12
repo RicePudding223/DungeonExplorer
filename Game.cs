@@ -35,8 +35,8 @@ namespace DungeonExplorer
         /// </summary>
         public void Start()
         {
-            bool DisplayInfo = false;
-            bool DisplayMap = false;
+            bool displayInfo = false;
+            bool displayMap = false;
             Console.WriteLine("\nStarting Game...\n");
             Thread.Sleep(400);
 
@@ -50,15 +50,15 @@ namespace DungeonExplorer
                 Player.CurrentRoom.GetDescription();
 
                 // Displays relavant information if needed
-                if (DisplayInfo)
+                if (displayInfo)
                 {
                     Player.DisplayInfo();
-                    DisplayInfo = false;
+                   displayInfo = false;
                 }
-                if (DisplayMap)
+                if (displayMap)
                 {
                     Player.DisplayMap(Grid);
-                    DisplayMap = false;
+                    displayMap = false;
                 }
 
                 // Asks the player what they want to do
@@ -82,10 +82,10 @@ namespace DungeonExplorer
                         Player.UseItem();
                         break;
                     case "5":
-                        DisplayInfo = true;
+                        displayInfo = true;
                         break;
                     case "6":
-                        DisplayMap = true;
+                        displayMap = true;
                         break;
                     case "7":
                         IsGameOver = true;

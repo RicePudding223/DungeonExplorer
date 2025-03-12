@@ -10,6 +10,10 @@ namespace DungeonExplorer
     {
         private Player player;
 
+        /// <summary>
+        /// Initialises a new instance of the InventoryManager class.
+        /// </summary>
+        /// <param name="player"> The player involved in the combat.</param>
         public InventoryManager(Player player)
         {
             this.player = player;
@@ -51,19 +55,6 @@ namespace DungeonExplorer
             {
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
-        }
-
-        /// <summary>
-        /// Method to add an item to the player's inventory.
-        /// </summary>
-        /// <param name="item"> The item being added to the inventory.</param>
-        public void AddItem(string item)
-        {
-            if (GameData.GetWeapons().ContainsKey(item))
-            {
-                EquipWeapon(item);
-            }
-            player.Inventory.Add(item);
         }
 
         /// <summary>

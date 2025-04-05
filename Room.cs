@@ -16,7 +16,7 @@ namespace DungeonExplorer
         public string Description { get; set; }
         public List<string> Exits { get; set; }
         public List<string> Items { get; set; }
-        public List<object> Enemies { get; set; }
+        public List<Monster> Enemies { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the Room class.
@@ -31,7 +31,7 @@ namespace DungeonExplorer
             Description = description;
             Exits = new List<string>();
             Items = new List<string>();
-            Enemies = new List<object>();
+            Enemies = new List<Monster>();
         }
 
         /// <summary>
@@ -54,8 +54,8 @@ namespace DungeonExplorer
                 for (int i = 0; i < Enemies.Count; i++)
                 {
                     // Access first element of each enemy item
-                    List<object> enemy = (List<object>)Enemies[i];
-                    Console.Write(enemy[0]);
+                    Monster enemy = Enemies[i];
+                    Console.Write(enemy.Name);
 
                     // Add a comma and space if it's not the last enemy
                     if (i < Enemies.Count - 1)
@@ -83,7 +83,7 @@ namespace DungeonExplorer
         /// Method to add an enemy to the room.
         /// </summary>
         /// <param name="enemy"> The enemy to be added to the room.</param>
-        public void AddEnemy(List<object> enemy)
+        public void AddEnemy(Monster enemy)
         {
             Enemies.Add(enemy);
         }

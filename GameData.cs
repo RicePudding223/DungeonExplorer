@@ -46,14 +46,14 @@ namespace DungeonExplorer
         /// <summary>
         /// A list of enemies with their names, damage, health, and speed.
         /// </summary>
-        private static List<List<object>> enemies = new List<List<object>>()
+        private static List<Monster> enemies = new List<Monster>()
         {
-            new List<object> { "Goblin", 10, 50, 1 },
-            new List<object> { "Orc", 20, 60, 1 },
-            new List<object> { "Troll", 30, 70, 2 },
-            new List<object> { "Giant", 40, 80, 3 },
-            new List<object> { "Wizard", 35, 90, 3 },
-            new List<object> { "Dragon", 50, 120, 4 }
+            new Monster("Goblin", 50, 10, 1),
+            new Monster("Orc", 60, 20, 1),
+            new Monster("Troll", 70, 30, 2),
+            new Monster("Giant", 80, 40, 3),
+            new Monster("Wizard", 90, 35, 3),
+            new Monster("Dragon", 120, 50, 4)
         };
 
         /// <summary>
@@ -117,11 +117,10 @@ namespace DungeonExplorer
         /// <param name="min"> The minimum index in the weapons dictionary.</param>
         /// <param name="max"> The maximum index in the weapons dictionary.</param>
         /// <returns> A list containing the enemies name, damage, health and speed.</returns>
-        public static List<object> GetRandomEnemy(int min, int max)
+        public static Monster GetRandomEnemy(int min, int max)
         {
             int index = random.Next(min, max);
-            List<object> enemyTemplate = enemies.ElementAt(index);
-            return new List<object> { enemyTemplate[0], enemyTemplate[1], enemyTemplate[2], enemyTemplate[3] };
+            return enemies[index];
         }
 
         /// <summary>

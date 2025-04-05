@@ -34,8 +34,8 @@ namespace DungeonExplorer
                     int end = player.CurrentRoom.Enemies.Count;
                     for (int i = 0; i < end; i++)
                     {
-                        List<object> enemy = (List<object>)player.CurrentRoom.Enemies[i];
-                        Console.WriteLine($"{i + 1}. {enemy[0]}");
+                        Monster enemy = player.CurrentRoom.Enemies[i];
+                        Console.WriteLine($"{i + 1}. {enemy.Name}");
                     }
                     Console.Write($"{end + 1}. Cancel\n: ");
                     string choiceS = Console.ReadLine();
@@ -46,17 +46,16 @@ namespace DungeonExplorer
                     {
                         Thread.Sleep(100);
                         Console.Clear();
-                        List<object> enemy = (List<object>)player.CurrentRoom.Enemies[choice - 1];
-                        int enemyMaxHealth = (int)enemy[2];
+                        Monster enemy = player.CurrentRoom.Enemies[choice - 1];
                         int round = 1;
 
                         // Main fight loop
                         while (true)
                         {
                             round++;
-                            Console.WriteLine($"\n===== Fighting {enemy[0]} =====\n");
+                            Console.WriteLine($"\n===== Fighting {enemy.Name} =====\n");
                             Console.WriteLine($"{player.Name}'s Health: {player.Health}/{player.MaxHealth}");
-                            Console.WriteLine($"{enemy[0]} Health: {enemy[2]}/{enemyMaxHealth}");
+                            Console.WriteLine($"{enemy.Name} Health: {enemy.Health}/{enemy.MaxHealth}");
                             Console.WriteLine("\nWhat do you want to do?");
                             Console.WriteLine("1. Attack\t\t 2. Use item\t\t 3. Run");
                             Console.Write(": ");
@@ -66,7 +65,7 @@ namespace DungeonExplorer
                             {
                                 case "1":
                                     Attack(enemy, choice, round);
-                                    if ((int)enemy[2] <= 0)
+                                    if (enemy.CheckAlive())
                                     {
                                         return;
                                     }
@@ -115,7 +114,7 @@ namespace DungeonExplorer
         /// <param name="enemy"> The enemy to attack.</param>
         /// <param name="choice"> The index of the enemy in the room's enemy list.</param>
         /// <param name="round"> The current ronud of the fight.</param>
-        public void Attack(List<object> enemy, int choice, int round)
+        public void Attack(Monster enemy, int choice, int round)
         {
             // Random multiplier to add some randomness to the damage
             Random random = new Random();
@@ -123,23 +122,23 @@ namespace DungeonExplorer
 
             // Calculate the player's damage and subtract it from the enemy's health
             int playerDamage = (int)(player.EquippedWeaponDamage + (player.Strength * multiplier));
-            enemy[2] = (int)enemy[2] - playerDamage;
-            Console.WriteLine($"\nYou deal {playerDamage} damage to {enemy[0]}.\n");
+            enemy.TakeDamage(playerDamage);
+            Console.WriteLine($"\nYou deal {playerDamage} damage to {enemy.Name}.\n");
 
             // Check if the enemy has been defeated
-            if ((int)enemy[2] <= 0)
+            if (!enemy.CheckAlive())
             {
-                Console.WriteLine($"You have defeated the {enemy[0]}.\n");
+                Console.WriteLine($"You have defeated the {enemy.Name}.\n");
                 player.CurrentRoom.Enemies.RemoveAt(choice - 1);
                 Thread.Sleep(1000);
                 return;
             }
 
             // Calculate the enemy's damage and subtract it from the player's health if they can attack this round
-            if (round % (int)enemy[3] == 0)
+            if (round % enemy.Speed == 0)
             {
-                player.Health -= (int)enemy[1];
-                Console.WriteLine($"{enemy[0]} deals {enemy[1]} damage to you.\n");
+                player.Health -= enemy.Strength;
+                Console.WriteLine($"{enemy.Name} deals {enemy.Strength} damage to you.\n");
             }
 
             // Check if the player has been defeated

@@ -292,7 +292,7 @@ namespace DungeonExplorer
         /// <param name="enemy"> The enemy to attack.</param>
         /// <param name="choice"> The index of the enemy in the room's enemy list.</param>
         /// <param name="round"> The current ronud of the fight.</param>
-        public void Attack(List<object> enemy, int choice, int round)
+        public void Attack(Monster enemy, int choice, int round)
         {
             combatManager.Attack(enemy, choice, round);
         }

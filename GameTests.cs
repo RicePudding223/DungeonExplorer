@@ -76,14 +76,14 @@ namespace DungeonExplorer
         {
             Console.WriteLine("Running TestCombat...");
             Player player = new Player("TestPlayer", 10, 10, new Room("Room 0", "Starting room", 0));
-            List<object> enemy = new List<object> { "Goblin", 10, 50, 1 }; // Goblin with 10 damage, 50 health, and speed 1
+            Monster enemy = new Monster("Goblin", 50, 10, 1); // Goblin with 10 damage, 50 health, and speed 1
             player.CurrentRoom.Enemies.Add(enemy);
 
             // Simulate player attacking the enemy
             player.EquippedWeaponDamage = 15; // Equip a weapon with 15 damage
             player.Attack(enemy, 1, 1);
 
-            Debug.Assert(15 <= (int)enemy[2] && (int)enemy[2] <= 25, "Enemy health should be reduced to between 15-25 depending on multiplier.");
+            Debug.Assert(15 <= enemy.Health && enemy.Health <= 25, "Enemy health should be reduced to between 15-25 depending on multiplier.");
 
             Console.WriteLine("TestCombat passed.\n");
         }

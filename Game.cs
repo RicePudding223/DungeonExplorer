@@ -36,7 +36,7 @@ namespace DungeonExplorer
             // Initialize managers responsible for UI, room movement, and combat
             _uiManager = new UIManager();
             _roomManager = new RoomManager();
-            _roomMovement = new RoomMovement(player, _roomManager);
+            _roomMovement = new RoomMovement(player, _roomManager, _uiManager);
             _combatManager = new CombatManager(player, _uiManager);
         }
 

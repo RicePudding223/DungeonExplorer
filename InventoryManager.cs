@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace DungeonExplorer
+﻿namespace DungeonExplorer
 {
     /// <summary>
     /// Manages and handles all interactions related to the player's inventory, including equipping items and using consumables.

@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace DungeonExplorer
 {
@@ -14,17 +9,20 @@ namespace DungeonExplorer
     {
         private readonly Player _player; // Reference to the player object.
         private readonly RoomManager _roomManager; // Manages room creation and interactions.
+        private readonly UIManager _uiManager; // Manages user interface interactions.
         private bool LastRoom = false; // Tracks whether the player has reached the last room.
 
         /// <summary>
-        /// Initializes the RoomMovement class with the player and room manager.
+        /// Initializes the RoomMovement class with the player, room manager, and UI manager.
         /// </summary>
         /// <param name="player"> The player instance.</param>
         /// <param name="roomManager"> The room manager instance.</param>
-        public RoomMovement(Player player, RoomManager roomManager)
+        /// <param name="uiManager"> The UI manager instance.</param>
+        public RoomMovement(Player player, RoomManager roomManager, UIManager uiManager)
         {
             _player = player;
             _roomManager = roomManager;
+            _uiManager = uiManager;
         }
 
         /// <summary>
@@ -35,7 +33,7 @@ namespace DungeonExplorer
         {
             if (_player.CurrentRoom.Enemies.Count > 0)
             {
-                Console.WriteLine("\nYou must defeat all enemies in the room before moving to another room.\n");
+                _uiManager.ShowMessage("You must defeat all enemies in the room before moving to another room.", true);
                 return true;
             }
             return false;
@@ -47,13 +45,13 @@ namespace DungeonExplorer
         /// <returns> The player's choice as an integer.</returns>
         private int GetRoomChoice()
         {
-            Console.WriteLine("\nYou decide to move to another room, where do you want to go?");
+            _uiManager.ShowMessage("You decide to move to another room, where do you want to go?");
             for (int i = 0; i < _player.CurrentRoom.Exits.Count; i++)
             {
                 Console.WriteLine($"{i + 1}. {_player.CurrentRoom.Exits[i]}");
             }
-            Console.Write($"{_player.CurrentRoom.Exits.Count + 1}. Cancel\n: ");
-            return int.TryParse(Console.ReadLine(), out int choice) ? choice : -1;
+            Console.WriteLine($"{_player.CurrentRoom.Exits.Count + 1}. Cancel");
+            return _uiManager.GetValidChoice(1, _player.CurrentRoom.Exits.Count + 1);
         }
 
         /// <summary>
@@ -64,28 +62,22 @@ namespace DungeonExplorer
         /// <param name="RoomCount"> The current number of rooms explored.</param>
         private void ProcessRoomMovement(string direction, Room[,] Grid, int RoomCount)
         {
-            MovePlayer(direction); // Updates the player's position.
-            if (Game.IsGameOver) // Checks if the game is over.
-            {
-                return;
-            }
+            MovePlayer(direction);
+            if (Game.IsGameOver) return;
 
-            if (RoomCount == 10) // Determines if the player has reached the last room.
-            {
-                LastRoom = true;
-            }
+            if (RoomCount == 10) LastRoom = true;
 
-            if (Grid[_player.PlayerX, _player.PlayerY] != null) // Checks if the room already exists.
+            if (Grid[_player.PlayerX, _player.PlayerY] != null)
             {
                 _player.CurrentRoom = Grid[_player.PlayerX, _player.PlayerY];
             }
             else
             {
-                // Creates a new room and updates the grid.
                 _player.CurrentRoom = _roomManager.CreateNewRoom($"Room {RoomCount}", direction, RoomCount, Grid, _player.PlayerX, _player.PlayerY, LastRoom);
                 Grid[_player.PlayerX, _player.PlayerY] = _player.CurrentRoom;
             }
-            Console.WriteLine($"\nYou move {direction} into Room {RoomCount}.\n");
+
+            _uiManager.ShowMessage($"You move {direction} into Room {RoomCount}.");
         }
 
         /// <summary>
@@ -95,20 +87,17 @@ namespace DungeonExplorer
         /// <param name="RoomCount"> The current number of rooms explored.</param>
         public void MoveToRoom(Room[,] Grid, int RoomCount)
         {
-            if (CheckForEnemies()) // Prevents movement if enemies are present.
-                return;
+            if (CheckForEnemies()) return;
 
-            int choice = GetRoomChoice(); // Gets the player's choice.
+            int choice = GetRoomChoice();
             if (choice > 0 && choice <= _player.CurrentRoom.Exits.Count)
             {
-                RoomCount++; // Increments room count for each valid movement.
+                RoomCount++;
                 ProcessRoomMovement(_player.CurrentRoom.Exits[choice - 1], Grid, RoomCount);
             }
             else if (choice != _player.CurrentRoom.Exits.Count + 1)
             {
-                // Handles invalid input.
-                Console.WriteLine("Invalid input, please try again.");
-                Thread.Sleep(600);
+                _uiManager.ShowMessage("Invalid input, please try again.", true);
             }
         }
 
@@ -120,21 +109,12 @@ namespace DungeonExplorer
         {
             switch (direction)
             {
-                case "North":
-                    _player.PlayerY--;
-                    break;
-                case "South":
-                    _player.PlayerY++;
-                    break;
-                case "East":
-                    _player.PlayerX++; 
-                    break;
-                case "West":
-                    _player.PlayerX--; 
-                    break;
+                case "North": _player.PlayerY--; break;
+                case "South": _player.PlayerY++; break;
+                case "East": _player.PlayerX++; break;
+                case "West": _player.PlayerX--; break;
                 case "Exit":
-                    // Ends the game when the player reaches the exit.
-                    Console.WriteLine("\nYou have reached the exit, congratulations!\n");
+                    _uiManager.ShowMessage("You have reached the exit, congratulations!");
                     Game.IsGameOver = true;
                     break;
             }

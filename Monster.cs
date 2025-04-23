@@ -1,25 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
-
-namespace DungeonExplorer
+﻿namespace DungeonExplorer
 {
+    /// <summary>
+    /// Represents a monster in the dungeon with its name, health, strength, and speed.
+    /// Inherits from the Creature class.
+    /// </summary>
     public class Monster : Creature
     {
-        public int Speed { get; set; }
+        public int Speed { get; set; }  // Speed property unique to the Monster class
 
-        public Monster(string name, int health, int strength, int speed) 
-             : base(name, health, strength)
+        /// <summary>
+        /// Initializes a new instance of the Monster class.
+        /// </summary>
+        /// <param name="name">The name of the monster.</param>
+        /// <param name="health">The health points of the monster.</param>
+        /// <param name="strength">The strength points of the monster.</param>
+        /// <param name="speed">The speed of the monster.</param>
+        public Monster(string name, int health, int strength, int speed)
+             : base(name, health, strength)  // Call the base class constructor
         {
             Speed = speed;
-        }
-
-        public override void TakeDamage(int damage)
-        {
-            Health -= damage;
         }
     }
 }

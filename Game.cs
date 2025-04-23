@@ -10,90 +10,106 @@ namespace DungeonExplorer
     internal class Game
     {
         /// <summary>
-        /// The Game class's properties. 
-        /// Gets and sets for the Player, IsGameOver, and Grid properties.
+        /// Properties for the Game class.
         /// </summary>
-        public Player Player { get; set; }
-        public static bool IsGameOver { get; set; }
-        public Room[,] Grid { get; set; }
+        public Player Player { get; set; }                 // The current player
+        public static bool IsGameOver { get; set; }         // Flag to indicate if the game is over
+        public Room[,] Grid { get; set; }                   // The grid of rooms representing the game world
+
+        // Private manager instances for handling game functionalities
+        private CombatManager _combatManager;
+        private UIManager _uiManager; 
+        private RoomMovement _roomMovement;  
+        private RoomManager _roomManager;                    
 
         /// <summary>
-        /// Initialises a new instance of the Game class.
+        /// Initializes a new instance of the Game class.
         /// </summary>
-        /// <param name="player"> The player instance </param>
-        /// <param name="currentRoom"> The starting room for the player </param>
-        /// <param name="grid"> The grid of rooms representing the game world </param>
-        public Game(Player player, Room currentRoom, Room[,] grid)
+        /// <param name="player">The player instance.</param>
+        /// <param name="grid">The grid of rooms representing the game world.</param>
+        public Game(Player player, Room[,] grid)
         {
             Player = player;
-            IsGameOver = false;
             Grid = grid;
+            IsGameOver = false;
+
+            // Initialize managers responsible for UI, room movement, and combat
+            _uiManager = new UIManager();
+            _roomManager = new RoomManager();
+            _roomMovement = new RoomMovement(player, _roomManager);
+            _combatManager = new CombatManager(player, _uiManager);
         }
 
         /// <summary>
-        /// Starts the game loop.
+        /// Starts the game loop, which runs until the game is over.
         /// </summary>
         public void Start()
         {
             bool displayInfo = false;
             bool displayMap = false;
+
             Console.WriteLine("\nStarting Game...\n");
-            Thread.Sleep(400);
+            Thread.Sleep(200);  // Adding a small delay before starting the game
 
             // Main game loop
             while (!IsGameOver)
             {
-                Thread.Sleep(100);
-                Console.Clear();
+                // Clear screen for different displays
+                if (displayInfo || displayMap)
+                {
+                    Console.Clear();  // Does not wait for user input after they select an option
+                }
+                else
+                {
+                    _uiManager.WaitForInput();  // Wait for user input before proceeding
+                }
 
-                // Gets the room information
-                Player.CurrentRoom.GetDescription();
+                // Display the current room and its details
+                _uiManager.DisplayRoom(Player.CurrentRoom);
 
-                // Displays relavant information if needed
+                // Display player information or map if required
                 if (displayInfo)
                 {
-                    Player.DisplayInfo();
-                   displayInfo = false;
+                    _uiManager.DisplayPlayerInfo(Player);
+                    displayInfo = false;  // Reset flag after displaying info
                 }
+
                 if (displayMap)
                 {
-                    Player.DisplayMap(Grid);
-                    displayMap = false;
+                    _uiManager.DisplayMap(Grid, Player);
+                    displayMap = false;  // Reset flag after displaying map
                 }
 
-                // Asks the player what they want to do
-                Console.Write("\nWhat do you want to do?\n\n1. Move to another room\t\t" +
-                    "2. Fight!\n3. Pick up items\t\t4. Use Items\n5. View player stats\t\t6. Display the Map\n7. Quit\n: ");
-                string choice = Console.ReadLine();
+                // Show the main menu to the player
+                int choice = _uiManager.ShowMainMenu();
 
-                // Switch statement to handle the player's choice
+                // Handle the player's choice based on the menu option selected
                 switch (choice)
                 {
-                    case "1":
-                        Player.MoveToRoom(Grid, Player.CurrentRoom.RoomCount);
+                    case 1:
+                        _roomMovement.MoveToRoom(Grid, Player.CurrentRoom.RoomCount);  // Move to another room
                         break;
-                    case "2":
-                        Player.FightEnemy();
+                    case 2:
+                        _combatManager.FightEnemy();  // Start combat with an enemy
                         break;
-                    case "3":
-                        Player.PickUpItem();
+                    case 3:
+                        Player.PickUpItem(_uiManager);  // Player picks up an item
                         break;
-                    case "4":
-                        Player.UseItem();
+                    case 4:
+                        Player.UseItem(_uiManager);  // Player uses an item
                         break;
-                    case "5":
-                        displayInfo = true;
+                    case 5:
+                        displayInfo = true;  // Flag to display player info
                         break;
-                    case "6":
-                        displayMap = true;
+                    case 6:
+                        displayMap = true;  // Flag to display the game map
                         break;
-                    case "7":
-                        IsGameOver = true;
+                    case 7:
+                        IsGameOver = true;  // Set game over flag and end the game
                         Console.WriteLine("\nThanks for playing!\n");
                         break;
                     default:
-                        Console.WriteLine("\nInvalid choice. Try again.\n");
-                        Thread.Sleep(600);
+                        Console.WriteLine("\nInvalid choice. Try again.\n");  // Handle invalid menu option
                         break;
                 }
             }

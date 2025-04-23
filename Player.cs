@@ -1,300 +1,115 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace DungeonExplorer
 {
     /// <summary>
-    /// Represents the player class.
-    /// It handles the player's properties and actions.
+    /// Represents the player character in the dungeon exploration game.
+    /// The Player class manages the player's properties, actions, and interactions with other game elements.
     /// </summary>
-    public class Player
+    public class Player : Creature, IHealable
     {
-        private RoomManager roomManager;
-        private InventoryManager inventoryManager;
-        private CombatManager combatManager;
+        // Player properties and actions management
+        public Weapon Weapon { get; set; }  // Gets or sets the weapon currently equipped by the player
+        public int EquippedWeaponDamage { get; set; }  // Gets or sets the damage value of the equipped weapon
+        public List<Item> Inventory { get; set; }  // Gets or sets the list of items in the player's inventory
+        public int PlayerX { get; set; }  // Gets or sets the player's current X-coordinate in the game world
+        public int PlayerY { get; set; }  // Gets or sets the player's current Y-coordinate in the game world
+        public Room CurrentRoom { get; set; }  // Gets or sets the room that the player is currently in
+
+        // Private manager instances for handling game functionalities
+        private RoomManager _roomManager;
+        private InventoryManager _inventoryManager;
+        private CombatManager _combatManager;
+        private UIManager _uiManager;
 
         /// <summary>
-        /// Gets and sets for the player's properties
+        /// Initializes a new instance of the Player class with specified properties.
         /// </summary>
-        public string Name { get; set; }
-        public int MaxHealth { get; set; }
-        public int Health { get; set; }
-        public int Strength { get; set; }
-        public string Weapon { get; set; }
-        public int EquippedWeaponDamage { get; set; }
-        public List<string> Inventory { get; set; }
-        public int PlayerX { get; set; }
-        public int PlayerY { get; set; }
-        public Room CurrentRoom { get; set; }
-        public bool lastRoom = false;
-
-        /// <summary>
-        /// Initialises a new instance of the Player class.
-        /// </summary>
-        /// <param name="name"> The name of the player.</param>
-        /// <param name="startX"> The starting X-coordinate of the player.</param>
-        /// <param name="startY"> The starting Y-coordinate of the player.</param>
-        /// <param name="currentRoom"> The starting room of the player.</param>
+        /// <param name="name">The name of the player.</param>
+        /// <param name="startX">The starting X-coordinate of the player.</param>
+        /// <param name="startY">The starting Y-coordinate of the player.</param>
+        /// <param name="currentRoom">The room the player begins in.</param>
         public Player(string name, int startX, int startY, Room currentRoom)
+            : base(name, 100, 10)  // Calls the base Creature class constructor
         {
-            roomManager = new RoomManager();
-            inventoryManager = new InventoryManager(this);
-            combatManager = new CombatManager(this);
-            Name = name;
-            MaxHealth = 100;
-            Health = MaxHealth;
-            Strength = 10;
-            Inventory = new List<string>();
-            PlayerX = startX;
-            PlayerY = startY;
-            CurrentRoom = currentRoom;
-            Weapon = null;
+            Inventory = new List<Item>(); 
+            PlayerX = startX;  
+            PlayerY = startY;  
+            CurrentRoom = currentRoom; 
+            Weapon = null;  
+
+            // Initializes the various manager objects to handle specific game functionalities
+            _uiManager = new UIManager();
+            _roomManager = new RoomManager();
+            _inventoryManager = new InventoryManager(this, _uiManager);
+            _combatManager = new CombatManager(this, _uiManager);
         }
 
         /// <summary>
-        /// Method to add an item to the player's inventory.
+        /// Adds an item to the player's inventory. If the item is a weapon, it equips the weapon.
         /// </summary>
-        /// <param name="item"> The item being added to the inventory.</param>
-        public void AddItem(string item)
+        /// <param name="item">The item to be added to the player's inventory.</param>
+        public void AddItem(Item item)
         {
-            if (GameData.GetWeapons().ContainsKey(item))
+            // If the item is a weapon, equip it using the InventoryManager
+            if (item is Weapon weapon)
             {
-                inventoryManager.EquipWeapon(item);
+                _inventoryManager.EquipWeapon(weapon, true);
             }
+            // Add the item to the player's inventory list
             Inventory.Add(item);
         }
 
         /// <summary>
-        /// Method to display player information, including name, health, inventory, and equipped weapon.
+        /// Allows the player to use an item from their inventory.
+        /// This method prompts the inventory manager to handle the item usage.
         /// </summary>
-        public void DisplayInfo()
+        /// <param name="uiManager">The UI manager used to interact with the player.</param>
+        public void UseItem(UIManager uiManager)
         {
-            Console.WriteLine($"\nName: {Name}");
-            Console.WriteLine($"Health: {Health}/{MaxHealth}");
-            Console.WriteLine($"Inventory: {string.Join(", ", Inventory)}");
-            Console.WriteLine($"Equipped Weapon: {Weapon}\n");
+            // Calls the inventory manager to handle the inventory interface
+            _inventoryManager.HandleInventory();
         }
 
         /// <summary>
-        /// Method to allow player to use an item from their inventory.
+        /// Allows the player to pick up an item from the current room.
+        /// The player selects an item from the room's list of items, which is then added to their inventory.
         /// </summary>
-        public void UseItem()
+        /// <param name="uiManager">The UI manager used to prompt and interact with the player.</param>
+        public void PickUpItem(UIManager uiManager)
         {
-            inventoryManager.UseItem();
-        }
-
-        /// <summary>
-        /// Method to move to another room on the grid.
-        /// </summary>
-        /// <param name="Grid"> The grid that represents the dungeon.</param>
-        /// <param name="RoomCount"> The current count of rooms explored.</param>
-        public void MoveToRoom(Room[,] Grid, int RoomCount)
-        {
-            // Loop to get a valid answer
-            while (true)
+            // Check if there are no items in the current room
+            if (CurrentRoom.Items.Count == 0)
             {
-                try
-                {
-                    // Checks if there are enemies in the room
-                    if (CurrentRoom.Enemies.Count > 0)
-                    {
-                        Console.WriteLine("\nYou must defeat all enemies in the room before moving to another room.\n");
-                        Thread.Sleep(1500);
-                        return;
-                    }
+                uiManager.ShowMessage("No items to pick up.");
+                return;
+            }
 
-                    // Prints out the exits and allows user to choose
-                    Console.WriteLine("\nYou decide to move to another room, where do you want to go?");
-                    int end = CurrentRoom.Exits.Count;
-                    for (int i = 0; i < end; i++)
-                    {
-                        Console.WriteLine($"{i + 1}. {CurrentRoom.Exits[i]}");
-                    }
-                    Console.Write($"{end + 1}. Cancel\n: ");
-                    string choiceS = Console.ReadLine();
-                    int.TryParse(choiceS, out int choice);
+            // Prompts the player to select an item to pick up
+            int choice = uiManager.ShowItemSelection(
+                CurrentRoom.Items,
+                "Choose an item to pick up:"
+            );
 
-                    // Make sure the choice is valid and move the player
-                    if (choice > 0 && choice != (end + 1) && choice <= end)
-                    {
-                        RoomCount++;
-                        string roomID = "Room " + RoomCount;
-                        string direction = CurrentRoom.Exits[choice - 1];
-
-                        MovePlayer(direction);
-                        if (Game.IsGameOver)
-                        {
-                            return;
-                        }
-
-                        // Makes a last room check
-                        if (RoomCount == 10)
-                        {
-                            lastRoom = true;
-                        }
-
-                        // Checks if the room the player is moving to already exists
-                        if (Grid[PlayerX, PlayerY] != null)
-                        {
-                            CurrentRoom = Grid[PlayerX, PlayerY];
-                        }
-                        // Creates a new room if it doesn't exist
-                        else
-                        {
-                            Room newRoom = roomManager.CreateNewRoom(roomID, direction, RoomCount, Grid, PlayerX, PlayerY, lastRoom);
-                            Grid[PlayerX, PlayerY] = newRoom;
-                            CurrentRoom = newRoom;
-
-                            Console.WriteLine($"\nYou move {direction} into {roomID}.\n");
-                            Thread.Sleep(600);
-                            break;
-                        }
-                    }
-                    // Breaks out of the loop if user decides to cancel
-                    else if (choice == (end + 1))
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Invalid input please try again.");
-                        Thread.Sleep(600);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"An error occurred: {ex.Message}");
-                }
+            // If the player selects a valid item, add it to the inventory and remove it from the room
+            if (choice <= CurrentRoom.Items.Count)
+            {
+                AddItem(CurrentRoom.Items[choice - 1]);
+                CurrentRoom.Items.RemoveAt(choice - 1);  // Remove the selected item from the room
             }
         }
 
         /// <summary>
-        /// Method to change the player's coordinate on the grid.
+        /// Heals the player by using a potion from their inventory.
         /// </summary>
-        /// <param name="direction"> The direction the player decided to move in.</param>
-        private void MovePlayer(string direction)
+        /// <param name="potion">The potion being used to heal the player.</param>
+        public void Heal(Potion potion)
         {
-            switch (direction)
-            {
-                case "North":
-                    PlayerY--;
-                    break;
-                case "South":
-                    PlayerY++;
-                    break;
-                case "East":
-                    PlayerX++;
-                    break;
-                case "West":
-                    PlayerX--;
-                    break;
-                case "Exit":
-                    Console.WriteLine("\nYou have reached the exit, congratulations!\n");
-                    Game.IsGameOver = true;
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Method to allow player to pick up an item from the current room.
-        /// </summary>
-        public void PickUpItem()
-        {
-            try
-            {
-                // If there are items in the room, display them and allow user to choose
-                if (CurrentRoom.Items.Count > 0)
-                {
-                    Console.WriteLine("\nYou decide to pick up an item, what do you pick up?");
-                    int end = CurrentRoom.Items.Count;
-                    for (int i = 0; i < end; i++)
-                    {
-                        Console.WriteLine($"{i + 1}. {CurrentRoom.Items[i]}");
-                    }
-                    Console.Write($"{end + 1}. Cancel\n: ");
-
-                    string choiceS = Console.ReadLine();
-                    int.TryParse(choiceS, out int choice);
-                    if (choice > 0 && choice <= end)
-                    {
-                        AddItem(CurrentRoom.Items[choice - 1]);
-                        CurrentRoom.Items.RemoveAt(choice - 1);
-                    }
-                    // Breaks out of the loop if user decides to cancel
-                    else if (choice == end + 1)
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Invalid input please try again.");
-                        Thread.Sleep(600);
-                        PickUpItem();
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("\nThere are no items to pick up in this room.\n");
-                    Thread.Sleep(1500);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"An error occurred: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Method to display a map of the grid, showing the player's position and rooms explored.
-        /// </summary>
-        /// <param name="Grid"> The grid representing the dungeon.</param>
-        public void DisplayMap(Room[,] Grid)
-        {
-            Console.WriteLine();
-            for (int y = 0; y < Grid.GetLength(1); y++)
-            {
-                for (int x = 0; x < Grid.GetLength(0); x++)
-                {
-                    // Checks if the grid position has a room and if the player is currently there
-                    if (Grid[x, y] != null)
-                    {
-                        if (x == PlayerX && y == PlayerY)
-                        {
-                            Console.Write("P ");
-                        }
-                        else
-                        {
-                            Console.Write("X ");
-                        }
-                    }
-                    else
-                    {
-                        Console.Write("- ");
-                    }
-                }
-                Console.WriteLine();
-            }
-            Console.WriteLine();
-        }
-
-        /// <summary>
-        /// Method to start a fight with an enemy in the current room.
-        /// </summary>
-        public void FightEnemy()
-        {
-            combatManager.FightEnemy();
-        }
-
-        /// <summary>
-        /// Method to attack an enemy during the fight.
-        /// </summary>
-        /// <param name="enemy"> The enemy to attack.</param>
-        /// <param name="choice"> The index of the enemy in the room's enemy list.</param>
-        /// <param name="round"> The current ronud of the fight.</param>
-        public void Attack(Monster enemy, int choice, int round)
-        {
-            combatManager.Attack(enemy, choice, round);
+            // Calls the inventory manager to use the consumable potion
+            _inventoryManager.UseConsumable(potion);
         }
     }
 }

@@ -53,7 +53,7 @@ namespace DungeonExplorer
                 newRoom.Description = "You have reached the final room, be careful.";
                 newRoom.Exits.RemoveRange(1, newRoom.Exits.Count - 1);  // Keep only the final exit
                 newRoom.AddExit("Exit");
-                newRoom.AddEnemy(GameData.GetRandomEnemy(5, 6));  // Add a powerful final enemy
+                newRoom.AddEnemy(new Boss("Dragon", 120, 50, 4));
             }
 
             return newRoom;

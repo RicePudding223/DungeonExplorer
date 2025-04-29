@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace DungeonExplorer
 {
@@ -55,7 +56,12 @@ namespace DungeonExplorer
                     {
                         case 1: // Attack action
                             Attack(enemy);
-                            if (!enemy.CheckAlive()) // If the enemy is defeated
+                            if (!enemy.CheckAlive() && enemy is Boss bossEnemy && !bossEnemy.secondPhase)
+                            {
+                                _uiManager.ShowMessage("Looks like the boss is preparing for a second phase!", true);
+                                bossEnemy.SecondPhase();
+                            }
+                            else if (!enemy.CheckAlive()) // If the enemy is defeated
                             {
                                 _player.CurrentRoom.Enemies.RemoveAt(enemyChoice - 1);
                                 _uiManager.ShowMessage($"You defeated the {enemy.Name}!", false);

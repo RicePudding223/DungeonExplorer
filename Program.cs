@@ -42,8 +42,11 @@ namespace DungeonExplorer
             // Create a new player and place them in the starting room
             var player = CreatePlayer(startX, startY, startRoom);
 
+            // Set the number of rooms to explore
+            int RoomCount = 1;
+
             // Create and start a new game
-            var game = new Game(player, grid);
+            var game = new Game(player, grid, RoomCount);
             game.Start();
 
             // Wait for the user to press any key to exit

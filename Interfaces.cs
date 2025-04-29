@@ -39,4 +39,9 @@
         /// <param name="player"> The player who is using the consumable item.</param>
         void Use(Player player);
     }
+
+    public interface IBoss
+    {
+        void SecondPhase();
+    }
 }

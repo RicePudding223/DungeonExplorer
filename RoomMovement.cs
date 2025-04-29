@@ -11,6 +11,7 @@ namespace DungeonExplorer
         private readonly RoomManager _roomManager; // Manages room creation and interactions.
         private readonly UIManager _uiManager; // Manages user interface interactions.
         private bool LastRoom = false; // Tracks whether the player has reached the last room.
+        private int _roomCount; // The total number of rooms in the dungeon.
 
         /// <summary>
         /// Initializes the RoomMovement class with the player, room manager, and UI manager.
@@ -18,11 +19,12 @@ namespace DungeonExplorer
         /// <param name="player"> The player instance.</param>
         /// <param name="roomManager"> The room manager instance.</param>
         /// <param name="uiManager"> The UI manager instance.</param>
-        public RoomMovement(Player player, RoomManager roomManager, UIManager uiManager)
+        public RoomMovement(Player player, RoomManager roomManager, UIManager uiManager, int roomCount)
         {
             _player = player;
             _roomManager = roomManager;
             _uiManager = uiManager;
+            _roomCount = roomCount;
         }
 
         /// <summary>
@@ -65,7 +67,7 @@ namespace DungeonExplorer
             MovePlayer(direction);
             if (Game.IsGameOver) return;
 
-            if (RoomCount == 10) LastRoom = true;
+            if (RoomCount == _roomCount) LastRoom = true;
 
             if (Grid[_player.PlayerX, _player.PlayerY] != null)
             {

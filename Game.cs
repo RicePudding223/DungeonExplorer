@@ -15,6 +15,7 @@ namespace DungeonExplorer
         public Player Player { get; set; }                 // The current player
         public static bool IsGameOver { get; set; }         // Flag to indicate if the game is over
         public Room[,] Grid { get; set; }                   // The grid of rooms representing the game world
+        public int RoomCount { get; set; }                  // The total number of rooms in the game
 
         // Private manager instances for handling game functionalities
         private CombatManager _combatManager;
@@ -27,7 +28,7 @@ namespace DungeonExplorer
         /// </summary>
         /// <param name="player">The player instance.</param>
         /// <param name="grid">The grid of rooms representing the game world.</param>
-        public Game(Player player, Room[,] grid)
+        public Game(Player player, Room[,] grid, int roomCount)
         {
             Player = player;
             Grid = grid;
@@ -36,7 +37,7 @@ namespace DungeonExplorer
             // Initialize managers responsible for UI, room movement, and combat
             _uiManager = new UIManager();
             _roomManager = new RoomManager();
-            _roomMovement = new RoomMovement(player, _roomManager, _uiManager);
+            _roomMovement = new RoomMovement(player, _roomManager, _uiManager, roomCount);
             _combatManager = new CombatManager(player, _uiManager);
         }
 

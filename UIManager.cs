@@ -67,7 +67,7 @@ namespace DungeonExplorer
             Console.WriteLine($"\nName: {player.Name}");
             Console.WriteLine($"Health: {player.CurrentHealth}/{player.MaxHealth}");
             Console.WriteLine($"Inventory: {string.Join(", ", player.Inventory.Select(item => item.Name))}");
-            Console.WriteLine($"Equipped Weapon: {(player.Weapon != null ? player.Weapon.Name : "None")}\n");
+            Console.WriteLine($"Equipped Weapon: {(player.Weapon != null ? player.Weapon.Name : "None")} (Damage: {player.Weapon.Damage})\n");
         }
 
         /// <summary>
@@ -158,7 +158,9 @@ namespace DungeonExplorer
             Console.WriteLine($"\n{prompt}");
             for (int i = 0; i < items.Count; i++)
             {
-                Console.WriteLine($"{i + 1}. {items[i].Name}");
+                Console.Write($"{i + 1}. {items[i].Name} ");
+
+                Console.WriteLine(items[i] is Weapon weapon ? $"(Damage: {weapon.Damage})" : string.Empty);
             }
             Console.WriteLine($"{items.Count + 1}. Cancel");
 

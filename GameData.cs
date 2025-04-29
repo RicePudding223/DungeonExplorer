@@ -46,15 +46,15 @@ namespace DungeonExplorer
 
         /// <summary>
         /// List holding different instances of the Monster class.
+        /// Sets each monster's name, max health, strength, and speed.
         /// </summary>
         private static List<Monster> enemies = new List<Monster>()
             {
                 new Monster("Goblin", 50, 10, 1),
                 new Monster("Orc", 60, 20, 1),
-                new Monster("Troll", 70, 30, 2),
-                new Monster("Giant", 80, 40, 3),
-                new Monster("Wizard", 90, 35, 3),
-                new Monster("Dragon", 120, 50, 4)
+                new Monster("Troll", 90, 30, 2),
+                new Monster("Giant", 110, 40, 3),
+                new Monster("Wizard", 100, 35, 2)
             };
 
         /// <summary>

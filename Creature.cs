@@ -8,7 +8,7 @@
     {
         public string Name { get; set; }
         public int CurrentHealth { get; set; }
-        public int MaxHealth { get; protected set; }
+        public int MaxHealth { get; set; }
         public int Strength { get; set; }
 
         /// <summary>

@@ -45,6 +45,10 @@ namespace DungeonExplorer
             CurrentHealth -= damage;
         }
 
+        /// <summary>
+        /// Handles the death of the creature.
+        /// </summary>
+        /// <param name="killer"> The creature doing the killing.</param>
         public virtual void OnDeath(Creature killer)
         {
             Console.WriteLine($"{Name} has been defeated by {killer.Name}");

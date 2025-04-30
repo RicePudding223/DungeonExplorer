@@ -40,6 +40,9 @@
         void Use(Player player);
     }
 
+    /// <summary>
+    /// Interface that the Boss class implements.
+    /// </summary>
     public interface IBoss
     {
         void SecondPhase();

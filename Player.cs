@@ -128,6 +128,10 @@ namespace DungeonExplorer
             _inventoryManager.UseConsumable(potion);
         }
 
+        /// <summary>
+        /// Handles the player's death event.
+        /// </summary>
+        /// <param name="killer"> The creature object that is killing the player.</param>
         public override void OnDeath(Creature killer)
         {
             base.OnDeath(killer);

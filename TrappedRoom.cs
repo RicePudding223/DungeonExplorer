@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DungeonExplorer
 {
+    /// <summary>
+    /// TrappedRoom class represents a room in the dungeon that contains traps.
+    /// </summary>
     internal class TrappedRoom : Room
     {
         /// <summary>
@@ -18,6 +17,10 @@ namespace DungeonExplorer
         {
         }
 
+        /// <summary>
+        /// Method that is called when the player enters the room.
+        /// </summary>
+        /// <param name="player"> The player instance.</param>
         public override void OnEnter(Player player)
         {
             player.TakeDamage(10);

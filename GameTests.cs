@@ -231,6 +231,11 @@ namespace DungeonExplorer
             ColorWriteLine("TestRoomManager passed.\n", _successColor);
         }
 
+        /// <summary>
+        /// Helper method to write colored text to the console.
+        /// </summary>
+        /// <param name="text"> The string of text being changed.</param>
+        /// <param name="color"> The colour being used</param>
         private void ColorWriteLine(string text, ConsoleColor color)
         {
             Console.ForegroundColor = color;

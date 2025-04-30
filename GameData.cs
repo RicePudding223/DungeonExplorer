@@ -96,6 +96,11 @@ namespace DungeonExplorer
         /// <returns> A weapon instance.</returns>
         public static Weapon GetRandomWeapon(int min, int max)
         {
+            if (min >= weapons.Count || max >= weapons.Count)
+            {
+                min = weapons.Count - 1;
+                max = weapons.Count;
+            }
             int index = random.Next(min, max);
             return weapons.ElementAt(index);
         }
@@ -108,6 +113,11 @@ namespace DungeonExplorer
         /// <returns> A potion instance.</returns>
         public static Potion GetRandomPotion(int min, int max)
         {
+            if (min >= potions.Count || max >= potions.Count)
+            {
+                min = potions.Count - 1;
+                max = potions.Count;
+            }
             int index = random.Next(min, max);
             return potions.ElementAt(index);
         }
@@ -120,6 +130,12 @@ namespace DungeonExplorer
         /// <returns> A new instance of the selected monster.</returns>
         public static Monster GetRandomEnemy(int min, int max)
         {
+            if (min >= enemies.Count || max >= enemies.Count )
+            {
+                min = enemies.Count - 1;
+                max = enemies.Count;
+            }
+
             int index = random.Next(min, max);
             Monster template = enemies[index];
             return new Monster(template.Name, template.MaxHealth, template.Strength, template.Speed);
@@ -136,21 +152,10 @@ namespace DungeonExplorer
         }
 
         /// <summary>
-        /// A get method for the weapons list.
+        /// Methods to return the weapons and potions lists.
         /// </summary>
-        /// <returns> A list of weapons objects.</returns>
-        public static List<Weapon> GetWeapons()
-        {
-            return weapons;
-        }
-
-        /// <summary>
-        /// A get method for the potions list.
-        /// </summary>
-        /// <returns> A list of potions objects.</returns>
-        public static List<Potion> GetPotions()
-        {
-            return potions;
-        }
+        /// <returns> A list of their respective objects.</returns>
+        public static List<Weapon> GetWeapons() => weapons.ToList();
+        public static List<Potion> GetPotions() => potions.ToList();
     }
 }

@@ -20,5 +20,15 @@
         {
             Speed = speed;
         }
+
+        public override void OnDeath(Creature killer)
+        {
+            base.OnDeath(killer);
+            if (killer is Player player)
+            {
+                player.Score += 10 + Strength;
+            }
+            
+        }
     }
 }

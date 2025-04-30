@@ -67,7 +67,8 @@ namespace DungeonExplorer
             Console.WriteLine($"\nName: {player.Name}");
             Console.WriteLine($"Health: {player.CurrentHealth}/{player.MaxHealth}");
             Console.WriteLine($"Inventory: {string.Join(", ", player.Inventory.Select(item => item.Name))}");
-            Console.WriteLine($"Equipped Weapon: {(player.Weapon != null ? player.Weapon.Name : "None")} (Damage: {player.Weapon.Damage})\n");
+            Console.WriteLine($"Equipped Weapon: {(player.Weapon != null ? player.Weapon.Name : "None")} (Damage: {(player.Weapon != null ? player.Weapon.Damage.ToString() : "0")})");
+            Console.WriteLine($"Score: {player.Score}\n");
         }
 
         /// <summary>
@@ -85,6 +86,10 @@ namespace DungeonExplorer
                     if (x == player.PlayerX && y == player.PlayerY)
                     {
                         Console.Write("P ");
+                    }
+                    else if (grid[x, y] is TrappedRoom)
+                    {
+                        Console.Write("T ");
                     }
                     else if (grid[x, y] != null)
                     {
@@ -160,7 +165,8 @@ namespace DungeonExplorer
             {
                 Console.Write($"{i + 1}. {items[i].Name} ");
 
-                Console.WriteLine(items[i] is Weapon weapon ? $"(Damage: {weapon.Damage})" : string.Empty);
+                Console.Write(items[i] is Weapon weapon ? $"(Damage: {weapon.Damage})\n" : string.Empty);  // Adds damage if it's a weapon
+                Console.Write(items[i] is Potion potion ? $"(Health recovery: {potion.HealthRecovery})\n" : string.Empty); // Adds health recovery if it's a potion
             }
             Console.WriteLine($"{items.Count + 1}. Cancel");
 

@@ -9,9 +9,10 @@ namespace DungeonExplorer
     internal class Program
     {
         // Constants for grid size and weapon level range
-        private const int GridSize = 10;            // The size of the grid (10x10)
-        private const int MinWeaponLevel = 0;       // Minimum weapon level for random weapon selection
-        private const int MaxWeaponLevel = 3;       // Maximum weapon level for random weapon selection
+        private const int GridSize = 10;  // The size of the grid (10x10)
+        private const int MinWeaponLevel = 0;  // Minimum weapon level for random weapon selection
+        private const int MaxWeaponLevel = 3;  // Maximum weapon level for random weapon selection
+        private const int RoomCount = 10;  // The number of rooms to be generated in the game
 
         /// <summary>
         /// Main method of the program.
@@ -22,8 +23,8 @@ namespace DungeonExplorer
         static void Main(string[] args)
         {
             // Test code can be uncommented for unit testing purposes
-            // GameTests tests = new GameTests();
-            // tests.RunAllTests();
+            //GameTests tests = new GameTests();
+            //tests.RunAllTests();
 
             // Output the initial game message
             Console.WriteLine("===== Dungeon Crawler =====\n");
@@ -41,9 +42,6 @@ namespace DungeonExplorer
 
             // Create a new player and place them in the starting room
             var player = CreatePlayer(startX, startY, startRoom);
-
-            // Set the number of rooms to explore
-            int RoomCount = 1;
 
             // Create and start a new game
             var game = new Game(player, grid, RoomCount);

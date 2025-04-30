@@ -55,8 +55,14 @@ namespace DungeonExplorer
             // Main game loop
             while (!IsGameOver)
             {
-                // Clear screen for different displays
-                if (displayInfo || displayMap)
+                if (!Player.CheckAlive()) // If the player is dead, end the combat
+                {
+                    _uiManager.ShowMessage("You have been defeated!", true);
+                    break;
+
+                }
+                    // Clear screen for different displays
+                    if (displayInfo || displayMap)
                 {
                     Console.Clear();  // Does not wait for user input after they select an option
                 }
@@ -88,16 +94,19 @@ namespace DungeonExplorer
                 switch (choice)
                 {
                     case 1:
-                        _roomMovement.MoveToRoom(Grid, Player.CurrentRoom.RoomCount);  // Move to another room
+                        if (_roomMovement.MoveToRoom(Grid, Player.CurrentRoom.RoomCount))
+                        {
+                            Player.CurrentRoom.OnEnter(Player);
+                        }
                         break;
                     case 2:
-                        _combatManager.FightEnemy();  // Start combat with an enemy
+                        _combatManager.FightEnemy(false);  // Start combat with an enemy
                         break;
                     case 3:
-                        Player.PickUpItem(_uiManager);  // Player picks up an item
+                        Player.PickUpItem();  // Player picks up an item
                         break;
                     case 4:
-                        Player.UseItem(_uiManager);  // Player uses an item
+                        Player.UseItem();  // Player uses an item
                         break;
                     case 5:
                         displayInfo = true;  // Flag to display player info
@@ -114,6 +123,7 @@ namespace DungeonExplorer
                         break;
                 }
             }
+            Console.WriteLine($"\nThank you for playing! Your score was: {Player.Score}");  // Display game over message
         }
     }
 }

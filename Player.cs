@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace DungeonExplorer
 {
@@ -15,6 +16,7 @@ namespace DungeonExplorer
         public int PlayerX { get; set; }  // Gets or sets the player's current X-coordinate in the game world
         public int PlayerY { get; set; }  // Gets or sets the player's current Y-coordinate in the game world
         public Room CurrentRoom { get; set; }  // Gets or sets the room that the player is currently in
+        public int Score { get; set; }  // Gets or sets the player's score in the game
 
         // Private manager instances for handling game functionalities
         private RoomManager _roomManager;
@@ -36,7 +38,8 @@ namespace DungeonExplorer
             PlayerX = startX;  
             PlayerY = startY;  
             CurrentRoom = currentRoom; 
-            Weapon = null;  
+            Weapon = null;
+            Score = 0;
 
             // Initializes the various manager objects to handle specific game functionalities
             _uiManager = new UIManager();
@@ -58,14 +61,16 @@ namespace DungeonExplorer
             }
             // Add the item to the player's inventory list
             Inventory.Add(item);
+
+            // Sort the inventory
+            Inventory = _inventoryManager.GetSortedInventory();
         }
 
         /// <summary>
         /// Allows the player to use an item from their inventory.
         /// This method prompts the inventory manager to handle the item usage.
         /// </summary>
-        /// <param name="uiManager">The UI manager used to interact with the player.</param>
-        public void UseItem(UIManager uiManager)
+        public void UseItem()
         {
             // Calls the inventory manager to handle the inventory interface
             _inventoryManager.HandleInventory();
@@ -75,18 +80,32 @@ namespace DungeonExplorer
         /// Allows the player to pick up an item from the current room.
         /// The player selects an item from the room's list of items, which is then added to their inventory.
         /// </summary>
-        /// <param name="uiManager">The UI manager used to prompt and interact with the player.</param>
-        public void PickUpItem(UIManager uiManager)
+        public void PickUpItem()
         {
-            // Check if there are no items in the current room
+            // Check if there are items in the current room
             if (CurrentRoom.Items.Count == 0)
             {
-                uiManager.ShowMessage("No items to pick up.");
+                _uiManager.ShowMessage("No items to pick up.");
                 return;
             }
 
+            // Check if there are enemies in the room
+            if (CurrentRoom.Enemies.Count > 0)
+            {
+                // If there are enemies, there's a chance the enemy will do a sneak attack
+                Random random = new Random();
+                int chance = random.Next(1, 11);
+                if (chance < 4)
+                {
+                    _uiManager.ShowMessage("You try to pick up an item, but the enemies attack you!");
+                    _uiManager.WaitForInput();
+                    _combatManager.FightEnemy(true);
+                    return;
+                }
+            }
+
             // Prompts the player to select an item to pick up
-            int choice = uiManager.ShowItemSelection(
+            int choice = _uiManager.ShowItemSelection(
                 CurrentRoom.Items,
                 "Choose an item to pick up:"
             );
@@ -107,6 +126,13 @@ namespace DungeonExplorer
         {
             // Calls the inventory manager to use the consumable potion
             _inventoryManager.UseConsumable(potion);
+        }
+
+        public override void OnDeath(Creature killer)
+        {
+            base.OnDeath(killer);
+            _uiManager.ShowMessage($"GAME OVER", true);
+            Game.IsGameOver = true;
         }
     }
 }

@@ -4,6 +4,8 @@ namespace DungeonExplorer
 {
     public class Room
     {
+        private readonly UIManager _uiManager;
+
         // Room properties
         public string RoomID { get; set; }  // The unique ID for the room
         public int RoomCount { get; set; }  // The total number of rooms in the dungeon
@@ -21,6 +23,15 @@ namespace DungeonExplorer
             Exits = new List<string>(); 
             Items = new List<Item>(); 
             Enemies = new List<Monster>();
+            _uiManager = new UIManager();
+        }
+
+        /// <summary>
+        /// Method to handle player entering the room.
+        /// </summary>
+        /// <param name="player"> The current player instance.</param>
+        public virtual void OnEnter(Player player)
+        {
         }
 
         /// <summary>

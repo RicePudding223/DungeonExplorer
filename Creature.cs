@@ -1,4 +1,6 @@
-﻿namespace DungeonExplorer
+﻿using System;
+
+namespace DungeonExplorer
 {
     /// <summary>
     /// Represents a base class for creatures (e.g., players, monsters) that are damageable.
@@ -41,6 +43,11 @@
         public void TakeDamage(int damage)
         {
             CurrentHealth -= damage;
+        }
+
+        public virtual void OnDeath(Creature killer)
+        {
+            Console.WriteLine($"{Name} has been defeated by {killer.Name}");
         }
     }
 }

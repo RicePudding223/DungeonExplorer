@@ -49,6 +49,7 @@
     <Compile Include="Game.cs" />
     <Compile Include="GameData.cs" />
     <Compile Include="RoomMovement.cs" />
+    <Compile Include="TrappedRoom.cs" />
     <Compile Include="UIManager.cs" />
     <Compile Include="GameTests.cs" />
     <Compile Include="Interfaces.cs" />

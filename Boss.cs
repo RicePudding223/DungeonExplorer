@@ -17,4 +17,14 @@ public class Boss : Monster, IBoss
         this.MaxHealth = this.CurrentHealth;
         this.Strength = (int)(this.Strength * 1.2); // Make boss stronger
     }
+
+    public override void OnDeath(Creature killer)
+    {
+        base.OnDeath(killer);
+        if (killer is Player player)
+        {
+            player.Score += 50 + Strength;
+        }
+    }
 }
+

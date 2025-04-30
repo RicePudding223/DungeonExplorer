@@ -1,4 +1,7 @@
-﻿namespace DungeonExplorer
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace DungeonExplorer
 {
     /// <summary>
     /// Manages and handles all interactions related to the player's inventory, including equipping items and using consumables.
@@ -96,6 +99,20 @@
                     _uiManager.ShowMessage($"You can't use {item.Name} directly.", true);
                     break;
             }
+        }
+
+        /// <summary>
+        /// Sorts the player's inventory based on item type and their respective attributes.
+        /// </summary>
+        /// <returns> A list of Item objects that is ordered.</returns>
+        public List<Item> GetSortedInventory()
+        {
+            return _player.Inventory
+                .OrderByDescending(item => item is Weapon ? 1 : 0)
+                .ThenByDescending(item =>
+                    item is Weapon weapon ? weapon.Damage :
+                    item is Potion potion ? potion.HealthRecovery : 0)
+                .ToList();
         }
     }
 }

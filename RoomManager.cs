@@ -33,6 +33,17 @@ namespace DungeonExplorer
         /// <returns> A new Room object with exits, enemies, and items.</returns>
         public Room CreateNewRoom(string roomID, string direction, int roomCount, Room[,] grid, int playerX, int playerY, bool lastRoom)
         {
+            Random random = new Random();
+            int trappedChance = random.Next(1, 11);
+
+            if (trappedChance == 1 && !lastRoom)
+            {
+                // Create a trapped room if the random chance is met
+                Room trappedRoom = new TrappedRoom(roomID, GameData.GetRandomRoomDescription(), roomCount);
+                AddNewExits(trappedRoom, grid, playerX, playerY);
+                return trappedRoom;
+            }
+
             Room newRoom = new Room(roomID, GameData.GetRandomRoomDescription(), roomCount);
 
             // Add an exit leading back to the previous room (opposite direction).

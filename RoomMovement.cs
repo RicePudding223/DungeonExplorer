@@ -87,20 +87,22 @@ namespace DungeonExplorer
         /// </summary>
         /// <param name="Grid"> The grid representation of the dungeon.</param>
         /// <param name="RoomCount"> The current number of rooms explored.</param>
-        public void MoveToRoom(Room[,] Grid, int RoomCount)
+        public bool MoveToRoom(Room[,] Grid, int RoomCount)
         {
-            if (CheckForEnemies()) return;
+            if (CheckForEnemies()) return false;
 
             int choice = GetRoomChoice();
             if (choice > 0 && choice <= _player.CurrentRoom.Exits.Count)
             {
                 RoomCount++;
                 ProcessRoomMovement(_player.CurrentRoom.Exits[choice - 1], Grid, RoomCount);
+                return true;
             }
             else if (choice != _player.CurrentRoom.Exits.Count + 1)
             {
                 _uiManager.ShowMessage("Invalid input, please try again.", true);
             }
+            return false;
         }
 
         /// <summary>

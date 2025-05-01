@@ -1,155 +1,138 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 
 namespace DungeonExplorer
 {
     /// <summary>
-    /// Class to manage the combat system.
+    /// Class to manage the combat system in the dungeon, handling player and enemy interactions.
     /// </summary>
     public class CombatManager
     {
-        private Player player;
+        private readonly Player _player;
+        private readonly UIManager _uiManager;
 
-        /// <summary>
-        /// Initialises a new instance of the CombatManager class.
-        /// </summary>
-        /// <param name="player"> The player involved in the combat.</param>
-        public CombatManager(Player player)
+        // Constructor to initialize the CombatManager with the player and UIManager
+        public CombatManager(Player player, UIManager uiManager)
         {
-            this.player = player;
+            _player = player;
+            _uiManager = uiManager;
         }
 
         /// <summary>
-        /// Method to start a fight with an enemy in the current room.
+        /// Starts a fight with an enemy in the current room.
         /// </summary>
-        public void FightEnemy()
+        public void FightEnemy(bool sneakAttack)
         {
-            try
+            Monster enemy;  // Temp variable to be replaced
+            int enemyChoice = 1; // Temp variable to be replaced
+
+            // Normal combat start
+            if (!sneakAttack)
             {
-                // Checks if there are enemies in the room then asks the player to choose an enemy to fight
-                if (player.CurrentRoom.Enemies.Count > 0)
+                // If there are no enemies in the room, notify the player
+                if (_player.CurrentRoom.Enemies.Count == 0)
                 {
-                    Console.WriteLine("\nYou decide to fight an enemy, which enemy do you want to fight?");
-                    int end = player.CurrentRoom.Enemies.Count;
-                    for (int i = 0; i < end; i++)
-                    {
-                        List<object> enemy = (List<object>)player.CurrentRoom.Enemies[i];
-                        Console.WriteLine($"{i + 1}. {enemy[0]}");
-                    }
-                    Console.Write($"{end + 1}. Cancel\n: ");
-                    string choiceS = Console.ReadLine();
-                    int.TryParse(choiceS, out int choice);
-
-                    // If the player chooses a valid enemy, start the fight
-                    if (choice > 0 && choice != (end + 1) && choice <= end)
-                    {
-                        Thread.Sleep(100);
-                        Console.Clear();
-                        List<object> enemy = (List<object>)player.CurrentRoom.Enemies[choice - 1];
-                        int enemyMaxHealth = (int)enemy[2];
-                        int round = 1;
-
-                        // Main fight loop
-                        while (true)
-                        {
-                            round++;
-                            Console.WriteLine($"\n===== Fighting {enemy[0]} =====\n");
-                            Console.WriteLine($"{player.Name}'s Health: {player.Health}/{player.MaxHealth}");
-                            Console.WriteLine($"{enemy[0]} Health: {enemy[2]}/{enemyMaxHealth}");
-                            Console.WriteLine("\nWhat do you want to do?");
-                            Console.WriteLine("1. Attack\t\t 2. Use item\t\t 3. Run");
-                            Console.Write(": ");
-                            string choice2 = Console.ReadLine();
-
-                            switch (choice2)
-                            {
-                                case "1":
-                                    Attack(enemy, choice, round);
-                                    if ((int)enemy[2] <= 0)
-                                    {
-                                        return;
-                                    }
-                                    break;
-
-                                case "2":
-                                    player.UseItem();
-                                    break;
-
-                                case "3":
-                                    Console.WriteLine("\nYou run away from the fight.\n");
-                                    Thread.Sleep(1500);
-                                    return;
-
-                                default:
-                                    Console.WriteLine("\nInvalid choice. Try again.\n");
-                                    Thread.Sleep(600);
-                                    break;
-                            }
-                            Thread.Sleep(1500);
-                            Console.Clear();
-                        }
-                    }
-                    // If the player chooses to cancel, return to the main game loop
-                    if (choice == (end + 1))
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Invalid input please try again.");
-                        Thread.Sleep(600);
-                        FightEnemy();
-                    }
+                    _uiManager.ShowMessage("There are no enemies to fight here.");
+                    return;
                 }
+
+                // Prompt the player to select an enemy to fight
+                enemyChoice = _uiManager.ShowEnemySelection(_player.CurrentRoom.Enemies);
+                if (enemyChoice == _player.CurrentRoom.Enemies.Count + 1) // If the player cancels
+                {
+                    return;
+                }
+
+                // Select the chosen enemy from the room
+                enemy = _player.CurrentRoom.Enemies[enemyChoice - 1];
             }
-            catch (Exception ex)
+
+            // Sneak attack combat start
+            else
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
+                // If the player is sneaking, select the first enemy in the room
+                enemy = _player.CurrentRoom.Enemies[0];
+                EnemyAttack(enemy);  // lets enemy attack first
+                _uiManager.WaitForInput();
+                if (!_player.CheckAlive()) { return; }
+            }
+            int round = 1;
+            // Main combat loop: alternates between player actions and enemy actions
+            while (true)
+            {
+                // Clear the screen and display combat status
+                _uiManager.ClearScreen();
+                _uiManager.ShowCombatStatus(_player, enemy, round);
+
+                // Display combat menu and let the player choose an action
+                int action = _uiManager.ShowCombatMenu(_player, enemy);
+                switch (action)
+                {
+                    case 1: // Attack action
+                        Attack(enemy);
+                        if (!enemy.CheckAlive() && enemy is Boss bossEnemy && !bossEnemy.secondPhase)
+                        {
+                            _uiManager.ShowMessage("Looks like the boss is preparing for a second phase!", true);
+                            bossEnemy.SecondPhase();
+                        }
+                        else if (!enemy.CheckAlive()) // If the enemy is defeated
+                        {
+                            _player.CurrentRoom.Enemies.RemoveAt(enemyChoice - 1);
+                            enemy.OnDeath(_player);// Call the enemy's death method
+                            return;
+                        }
+                        break;
+
+                    case 2: // Use item action
+                        _player.UseItem();
+                        break;
+
+                    case 3: // Run action
+                        _uiManager.ShowMessage("You ran away from the fight!", false);
+                        return;
+                }
+
+                // Enemy attacks if still alive and based on its speed
+                if (enemy.CheckAlive() && round % enemy.Speed == 0)
+                {
+                    if (!EnemyAttack(enemy)) { break; }
+                }
+
+                round++; // Increment round counter
+                _uiManager.WaitForInput();
             }
         }
 
         /// <summary>
-        /// Method to attack an enemy during the fight.
+        /// Method to perform an attack on the enemy by the player.
         /// </summary>
-        /// <param name="enemy"> The enemy to attack.</param>
-        /// <param name="choice"> The index of the enemy in the room's enemy list.</param>
-        /// <param name="round"> The current ronud of the fight.</param>
-        public void Attack(List<object> enemy, int choice, int round)
+        /// <param name="enemy"> The enemy being attacked.</param>
+        public void Attack(Monster enemy)
         {
-            // Random multiplier to add some randomness to the damage
             Random random = new Random();
-            double multiplier = Math.Round(random.NextDouble() + 1, 1);
+            double multiplier = Math.Round(random.NextDouble() + 1, 1); // Random multiplier for attack damage
+            int playerDamage = (int)(_player.EquippedWeaponDamage + (_player.Strength * multiplier)); // Calculate damage
 
-            // Calculate the player's damage and subtract it from the enemy's health
-            int playerDamage = (int)(player.EquippedWeaponDamage + (player.Strength * multiplier));
-            enemy[2] = (int)enemy[2] - playerDamage;
-            Console.WriteLine($"\nYou deal {playerDamage} damage to {enemy[0]}.\n");
+            enemy.TakeDamage(playerDamage); // Deal damage to the enemy
+            _uiManager.ShowMessage($"You deal {playerDamage} damage to {enemy.Name}.", false); // Display message
+        }
 
-            // Check if the enemy has been defeated
-            if ((int)enemy[2] <= 0)
+        /// <summary>
+        /// Method for the enemy to attack the player.
+        /// </summary>
+        /// <param name="enemy"> The enemy performing the attack.</param>
+        /// <returns> True if the player is still alive after the attack, otherwise false.</returns>
+        private bool EnemyAttack(Monster enemy)
+        {
+            _player.TakeDamage(enemy.Strength); // Player takes damage from enemy
+            _uiManager.ShowMessage($"{enemy.Name} deals {enemy.Strength} damage to you.", true); // Show damage message
+            if (!_player.CheckAlive())
             {
-                Console.WriteLine($"You have defeated the {enemy[0]}.\n");
-                player.CurrentRoom.Enemies.RemoveAt(choice - 1);
-                Thread.Sleep(1000);
-                return;
+                _player.OnDeath(enemy);
+                return false;
             }
+            return true;
 
-            // Calculate the enemy's damage and subtract it from the player's health if they can attack this round
-            if (round % (int)enemy[3] == 0)
-            {
-                player.Health -= (int)enemy[1];
-                Console.WriteLine($"{enemy[0]} deals {enemy[1]} damage to you.\n");
-            }
-
-            // Check if the player has been defeated
-            if (player.Health <= 0)
-            {
-                Console.WriteLine("You have died.\n");
-                Game.IsGameOver = true;
-                Thread.Sleep(1000);
-                return;
-            }
         }
     }
 }

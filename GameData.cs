@@ -12,49 +12,50 @@ namespace DungeonExplorer
         private static Random random = new Random();
 
         /// <summary>
-        /// Dictionary of weapons and their damage.
+        /// List holding different instances of the Weapon class.
         /// </summary>
-        private static Dictionary<string, int> weapons = new Dictionary<string, int>()
-        {
-            { "Rusty Dagger", 5 },
-            { "Wooden Club", 8 },
-            { "Stone Axe", 12 },
-            { "Bronze Sword", 15 },
-            { "Iron Spear", 18 },
-            { "Steel Mace", 22 },
-            { "Silver Rapier", 25 },
-            { "Obsidian Knife", 28 },
-            { "Elven Bow", 30 },
-            { "Dwarven Warhammer", 35 },
-            { "Dark Steel Katana", 40 },
-            { "Dragonbone Greatsword", 45 },
-            { "Phoenix Fire Staff", 50 },
-            { "Elder Wand", 55 },
-            { "Godslayer Blade", 60 }
-        };
+        private static List<Weapon> weapons = new List<Weapon>()
+            {
+                new Weapon("Rusty Dagger", 5),
+                new Weapon("Wooden Club", 8),
+                new Weapon("Stone Axe", 12),
+                new Weapon("Bronze Sword", 15),
+                new Weapon("Iron Spear", 18),
+                new Weapon("Steel Mace", 22),
+                new Weapon("Silver Rapier", 25),
+                new Weapon("Obsidian Knife", 28),
+                new Weapon("Elven Bow", 30),
+                new Weapon("Dwarven Warhammer", 35),
+                new Weapon("Dark Steel Katana", 40),
+                new Weapon("Dragonbone Greatsword", 45),
+                new Weapon("Phoenix Fire Staff", 50),
+                new Weapon("Elder Wand", 55),
+                new Weapon("Godslayer Blade", 60)
+            };
+
 
         /// <summary>
-        /// Dictionary of potions and their health recovery values.
+        /// List holding different instances of the Potion class.
         /// </summary>
-        private static Dictionary<string, int> potions = new Dictionary<string, int>()
-        {
-            {"Lesser Health Potion", 10 },
-            {"Health Potion", 20 },
-            {"Greater Health Potion", 30 }
-        };
+        private static List<Potion> potions = new List<Potion>()
+            {
+                new Potion("Lesser Health Potion", 10),
+                new Potion("Health Potion", 20),
+                new Potion("Greater Health Potion", 30),
+            };
 
         /// <summary>
-        /// A list of enemies with their names, damage, health, and speed.
+        /// List holding different instances of the Monster class.
+        /// Sets each monster's name, max health, strength, and speed.
         /// </summary>
-        private static List<List<object>> enemies = new List<List<object>>()
-        {
-            new List<object> { "Goblin", 10, 50, 1 },
-            new List<object> { "Orc", 20, 60, 1 },
-            new List<object> { "Troll", 30, 70, 2 },
-            new List<object> { "Giant", 40, 80, 3 },
-            new List<object> { "Wizard", 35, 90, 3 },
-            new List<object> { "Dragon", 50, 120, 4 }
-        };
+        private static List<Monster> enemies = new List<Monster>()
+            {
+                new Monster("Goblin", 50, 10, 1),
+                new Monster("Orc", 60, 20, 1),
+                new Monster("Troll", 90, 30, 2),
+                new Monster("Giant", 110, 40, 3),
+                new Monster("Wizard", 100, 35, 2)
+            };
 
         /// <summary>
         /// A list of room descriptions.
@@ -88,25 +89,35 @@ namespace DungeonExplorer
         };
 
         /// <summary>
-        /// Method to return a random weapon from the weapons dictionary within a specific range.
+        /// Method to return a random weapon from the weapons list within a specific range.
         /// </summary>
         /// <param name="min"> The minimum index in the weapons dictionary.</param>
         /// <param name="max"> The maximum index in the weapons dictionary.</param>
-        /// <returns> A key value pair holding the weapon's name and damage value.</returns>
-        public static KeyValuePair<string, int> GetRandomWeapon(int min, int max)
+        /// <returns> A weapon instance.</returns>
+        public static Weapon GetRandomWeapon(int min, int max)
         {
+            if (min >= weapons.Count || max >= weapons.Count)
+            {
+                min = weapons.Count - 1;
+                max = weapons.Count;
+            }
             int index = random.Next(min, max);
             return weapons.ElementAt(index);
         }
 
         /// <summary>
-        /// Method to return a random potion from the potions dictionary within a specific range.
+        /// Method to return a random potion from the potions list within a specific range.
         /// </summary>
         /// <param name="min"> The minimum index in the weapons dictionary.</param>
         /// <param name="max"> The maximum index in the weapons dictionary.</param>
-        /// <returns> A Key value pair holding the potion's name and health recovery value.</returns>
-        public static KeyValuePair<string, int> GetRandomPotion(int min, int max)
+        /// <returns> A potion instance.</returns>
+        public static Potion GetRandomPotion(int min, int max)
         {
+            if (min >= potions.Count || max >= potions.Count)
+            {
+                min = potions.Count - 1;
+                max = potions.Count;
+            }
             int index = random.Next(min, max);
             return potions.ElementAt(index);
         }
@@ -116,12 +127,18 @@ namespace DungeonExplorer
         /// </summary>
         /// <param name="min"> The minimum index in the weapons dictionary.</param>
         /// <param name="max"> The maximum index in the weapons dictionary.</param>
-        /// <returns> A list containing the enemies name, damage, health and speed.</returns>
-        public static List<object> GetRandomEnemy(int min, int max)
+        /// <returns> A new instance of the selected monster.</returns>
+        public static Monster GetRandomEnemy(int min, int max)
         {
+            if (min >= enemies.Count || max >= enemies.Count )
+            {
+                min = enemies.Count - 1;
+                max = enemies.Count;
+            }
+
             int index = random.Next(min, max);
-            List<object> enemyTemplate = enemies.ElementAt(index);
-            return new List<object> { enemyTemplate[0], enemyTemplate[1], enemyTemplate[2], enemyTemplate[3] };
+            Monster template = enemies[index];
+            return new Monster(template.Name, template.MaxHealth, template.Strength, template.Speed);
         }
 
         /// <summary>
@@ -135,21 +152,10 @@ namespace DungeonExplorer
         }
 
         /// <summary>
-        /// A get method for the weapons dictionary.
+        /// Methods to return the weapons and potions lists.
         /// </summary>
-        /// <returns> A dictionary of weapons and their damage.</returns>
-        public static Dictionary<string, int> GetWeapons()
-        {
-            return weapons;
-        }
-
-        /// <summary>
-        /// A get method for the potions dictionary.
-        /// </summary>
-        /// <returns> A dictionary of potions and their health recovery values.</returns>
-        public static Dictionary<string, int> GetPotions()
-        {
-            return potions;
-        }
+        /// <returns> A list of their respective objects.</returns>
+        public static List<Weapon> GetWeapons() => weapons.ToList();
+        public static List<Potion> GetPotions() => potions.ToList();
     }
 }

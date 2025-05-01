@@ -4,12 +4,12 @@ using System.Collections.Generic;
 namespace DungeonExplorer
 {
     /// <summary>
-    /// Class to manage the creation of new rooms.
+    /// Manages the creation of new rooms in the dungeon, including adding exits, enemies, and items.
     /// </summary>
     public class RoomManager
     {
         /// <summary>
-        /// A dictionary to map opposite directions.
+        /// A dictionary mapping each direction to its opposite. Used for managing room exits.
         /// </summary>
         private static readonly Dictionary<string, string> OppositeDirections = new Dictionary<string, string>
         {
@@ -20,57 +20,70 @@ namespace DungeonExplorer
         };
 
         /// <summary>
-        /// Creates a new room based on the direction the player is moving.
+        /// Creates a new room based on the player's movement direction and other parameters.
+        /// It sets up exits, adds enemies and items (unless it’s the last room), and updates the player's position.
         /// </summary>
-        /// <param name="roomID"> The unique ID of the room.</param>
-        /// <param name="direction"> The direction the player is moving.</param>
-        /// <param name="roomCount"> The number of rooms in the dungeon.</param>
-        /// <param name="grid"> The grid that represents the dungeon.</param>
-        /// <param name="playerX"> The new X-coordinate of the player's position.</param>
-        /// <param name="playerY"> The new Y-coordinate of the player's position.</param>
-        /// <param name="lastRoom"> Check to see if this room is the last room.</param>
-        /// <returns> A new room object with exits, enemies and items.</returns>
+        /// <param name="roomID"> The unique identifier for the room being created.</param>
+        /// <param name="direction"> The direction in which the player is moving.</param>
+        /// <param name="roomCount"> The total number of rooms in the dungeon.</param>
+        /// <param name="grid"> The 2D grid representing the dungeon layout.</param>
+        /// <param name="playerX"> The new X-coordinate of the player's position in the dungeon.</param>
+        /// <param name="playerY"> The new Y-coordinate of the player's position in the dungeon.</param>
+        /// <param name="lastRoom"> Indicates whether this is the last room in the dungeon.</param>
+        /// <returns> A new Room object with exits, enemies, and items.</returns>
         public Room CreateNewRoom(string roomID, string direction, int roomCount, Room[,] grid, int playerX, int playerY, bool lastRoom)
         {
+            Random random = new Random();
+            int trappedChance = random.Next(1, 11);
+
+            if (trappedChance == 1 && !lastRoom)
+            {
+                // Create a trapped room if the random chance is met
+                Room trappedRoom = new TrappedRoom(roomID, GameData.GetRandomRoomDescription(), roomCount);
+                AddNewExits(trappedRoom, grid, playerX, playerY);
+                return trappedRoom;
+            }
+
             Room newRoom = new Room(roomID, GameData.GetRandomRoomDescription(), roomCount);
 
-            // Add exit to previous room
+            // Add an exit leading back to the previous room (opposite direction).
             string oppositeDirection = OppositeDirections[direction];
             newRoom.AddExit(oppositeDirection);
 
-            // Add new exits, but checks if there should already be one or not
+            // Add additional exits based on the player's position and the existing grid.
             AddNewExits(newRoom, grid, playerX, playerY);
 
-            // If it's not the last room, add random enemies and items
+            // If this is not the last room, add random enemies and items to the room.
             if (!lastRoom)
             {
                 AddRandomEnemiesAndItems(newRoom, roomCount);
             }
             else
             {
-                // If it's the last room, add a final enemy and exit
+                // If it's the last room, modify the description, limit exits to a single "Exit" and add a final enemy.
                 newRoom.Description = "You have reached the final room, be careful.";
-                newRoom.Exits.RemoveRange(1, newRoom.Exits.Count - 1);
+                newRoom.Exits.RemoveRange(1, newRoom.Exits.Count - 1);  // Keep only the final exit
                 newRoom.AddExit("Exit");
-                newRoom.AddEnemy(GameData.GetRandomEnemy(5, 6));
+                newRoom.AddEnemy(new Boss("Dragon", 120, 50, 4));
             }
 
             return newRoom;
         }
 
         /// <summary>
-        /// Adds new exits to the room based on the player's position.
+        /// Adds new exits to the room based on the player's position and the state of the dungeon grid.
+        /// Ensures valid exit connections and avoids overlaps with existing rooms.
         /// </summary>
-        /// <param name="newRoom"> The room being created.</param>
-        /// <param name="grid"> The grid representing the dungeon.</param>
-        /// <param name="playerX"> The new X-coordinate of the player's position</param>
-        /// <param name="playerY">The new Y-coordinate of the player's position</param>
+        /// <param name="newRoom"> The room being created, to which exits will be added.</param>
+        /// <param name="grid"> The 2D grid representing the dungeon layout.</param>
+        /// <param name="playerX"> The new X-coordinate of the player's position.</param>
+        /// <param name="playerY"> The new Y-coordinate of the player's position.</param>
         private void AddNewExits(Room newRoom, Room[,] grid, int playerX, int playerY)
         {
             bool doorAdded = false;
             Random random = new Random();
 
-            // Loop to add at least one new valid room to the grid
+            // Attempt to add at least one valid exit based on the player's position.
             while (!doorAdded)
             {
                 foreach (string key in OppositeDirections.Keys)
@@ -78,6 +91,7 @@ namespace DungeonExplorer
                     int newX = playerX, newY = playerY;
                     string oppositeExit = "";
 
+                    // Determine new coordinates based on the current direction.
                     switch (key)
                     {
                         case "North": newY--; oppositeExit = "South"; break;
@@ -86,62 +100,60 @@ namespace DungeonExplorer
                         case "West": newX--; oppositeExit = "East"; break;
                     }
 
-                    // Checks if the new room already has the exit
-                    if (newRoom.Exits.Contains(key))
+                    // Skip if the room already contains the exit or if the new room's position is out of bounds.
+                    if (newRoom.Exits.Contains(key) || newX < 0 || newY < 0 || newX >= grid.GetLength(1) || newY >= grid.GetLength(0))
                         continue;
 
-                    // Checks if the player is at the edge of the grid or if there is a room in the way
-                    if (newX < 0 || newY < 0 || newX >= grid.GetLength(1) || newY >= grid.GetLength(0))
-                        continue;
+                    // Skip if there is a room in the way and it doesn't have the opposite exit.
                     if (grid[newX, newY] != null && !grid[newX, newY].Exits.Contains(oppositeExit))
                         continue;
 
-                    // Checks if there is a room in the way but it has an exit to the new room
+                    // If a room exists and has the opposite exit, add the new exit to the current room
                     if (grid[newX, newY] != null && grid[newX, newY].Exits.Contains(oppositeExit))
                     {
                         newRoom.AddExit(key);
                         continue;
                     }
 
-                    // If it passes checks, attempt to add exit
+                    // Randomly decide whether to add an exit
                     int chance = random.Next(1, 5);
                     if (chance == 1)
                     {
                         newRoom.AddExit(key);
-                        doorAdded = true;
+                        doorAdded = true;  // Exit found and added
                     }
                 }
             }
         }
 
         /// <summary>
-        /// Adds random enemies and items to the room based on the room number.
+        /// Adds a random number of enemies and items to the room, based on the total number of rooms in the dungeon.
         /// </summary>
         /// <param name="newRoom"> The room being created.</param>
-        /// <param name="roomCount"> The number of rooms in the dungeon.</param>
+        /// <param name="roomCount"> The total number of rooms in the dungeon, used to scale the number of enemies and items.</param>
         private void AddRandomEnemiesAndItems(Room newRoom, int roomCount)
         {
-            // Add random amount of enemies based on room number
+            // Add a random number of enemies, scaling with the room count
             int amountOfEnemies = 1 + (roomCount / 3);
             for (int i = 0; i < amountOfEnemies; i++)
             {
                 newRoom.AddEnemy(GameData.GetRandomEnemy(0, 1 + (roomCount / 2)));
             }
 
-            // Add random amount of items based on room number
+            // Add a random number of items, scaling with the room count
             int amountOfItems = 0 + (roomCount / 2);
             Random randomItem = new Random();
             for (int i = 0; i < amountOfItems; i++)
             {
-                // For each item, there is a 50% chance of it being a potion or a weapon
+                // Randomly decide whether the item is a potion or a weapon
                 int chance = randomItem.Next(1, 3);
                 if (chance == 1)
                 {
-                    newRoom.AddItem(GameData.GetRandomPotion((0 + roomCount / 5), (1 + roomCount / 3)).Key);
+                    newRoom.AddItem(GameData.GetRandomPotion((0 + roomCount / 5), (1 + roomCount / 3)));
                 }
                 else
                 {
-                    newRoom.AddItem(GameData.GetRandomWeapon((2 + roomCount), (5 + roomCount)).Key);
+                    newRoom.AddItem(GameData.GetRandomWeapon((2 + roomCount), (5 + roomCount)));
                 }
             }
         }
